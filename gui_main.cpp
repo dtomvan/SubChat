@@ -20,7 +20,7 @@
 #include "stb_image.h"
 #include "ytt_generator.h"
 #include "fonts/lucon.hpp"
-#include <nfd.h>
+#include <tinyfiledialogs.h>
 
 constexpr float FONT_LOAD_SIZE = 96;
 constexpr float FONT_SIZE = 20;
@@ -177,11 +177,6 @@ int main(int, char **) {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
-    if (NFD_Init() != NFD_OKAY) {
-        printf("Error: %s\n", NFD_GetError());
-        return 1;
-    }
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -222,15 +217,17 @@ int main(int, char **) {
 
         ImGui::Begin("Settings");
         if (ImGui::Button("Load Image for Preview")) {
-            nfdu8char_t *outPath = nullptr;
-            nfdu8filteritem_t filters[1] = {{"Image Files", "png,jpg,jpeg"}};
-            nfdopendialogu8args_t args = {0};
-            args.filterList = filters;
-            args.filterCount = 1;
-            // Set the parent window handle using the GLFW binding
-            //NFD_GetNativeWindowFromGLFWWindow(window, &args.parentWindow);
-            nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
-            if (result == NFD_OKAY) {
+            char const * filterPatterns[3] = {"*.png", "*.jpg", "*.jpeg"};
+
+            char* outPath = tinyfd_openFileDialog(
+                    "Load Image for Preview",
+                    NULL,
+                    3,
+                    filterPatterns,
+                    "Image Files",
+                    0);
+
+            if (outPath != NULL) {
                 if (preview_texture != 0) {
                     glDeleteTextures(1, &preview_texture);
                     preview_texture = 0;
@@ -238,32 +235,24 @@ int main(int, char **) {
                 bool ret = LoadTextureFromFile(outPath, &preview_texture, &preview_width, &preview_height);
                 if (!ret)
                     printf("Failed to load image: %s\n", outPath);
-                NFD_FreePathU8(outPath);
-            } else if (result == NFD_CANCEL) {
-                // Do nothing
-            } else {
-                printf("Error: %s\n", NFD_GetError());
             }
         }
         if (preview_texture == 0) ImGui::BeginDisabled();
         if (ImGui::Button("Load Chat Logs for Preview")) {
-            nfdu8char_t *outPath = nullptr;
-            nfdu8filteritem_t filters[1] = {{"CSV files", "csv"}};
-            nfdopendialogu8args_t args = {0};
-            args.filterList = filters;
-            args.filterCount = 1;
-            // Set the parent window handle using the GLFW binding
-            //NFD_GetNativeWindowFromGLFWWindow(window, &args.parentWindow);
-            nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
-            if (result == NFD_OKAY) {
+            char const * filterPatterns[1] = {"*.csv"};
+
+            char* outPath = tinyfd_openFileDialog(
+                    "Load Chat Logs for Preview",
+                    NULL,
+                    1,
+                    filterPatterns,
+                    "CSV files",
+                    0);
+
+            if (outPath != NULL) {
                 int multiplier = 1; // TODO: some way to customize time units
                 text_overlay.messages = parseCSV(outPath, multiplier);
                 text_overlay.revalidatePreview = true;
-                NFD_FreePathU8(outPath);
-            } else if (result == NFD_CANCEL) {
-                // Do nothing
-            } else {
-                printf("Error: %s\n", NFD_GetError());
             }
         }
         ImGui::SliderInt("X", &p.horizontalMargin, 0, 100);
@@ -281,44 +270,34 @@ int main(int, char **) {
         text_overlay.revalidatePreview += ImGui::SliderInt("Line\nCount", &p.totalDisplayLines, 1, 50);
         text_overlay.revalidatePreview += ImGui::InputText("Username\nSeparator", &p.usernameSeparator);
         if (ImGui::Button("Load Config")) {
-            nfdu8char_t *outPath = nullptr;
-            nfdu8filteritem_t filters[1] = {{"Chat configs", "ini"}};
-            nfdopendialogu8args_t args = {0};
-            args.filterList = filters;
-            args.filterCount = 1;
-            // TODO Set the parent window handle using the GLFW binding
-            //NFD_GetNativeWindowFromGLFWWindow(window, &args.parentWindow);
-            nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
-            if (result == NFD_OKAY) {
+            char const * filterPatterns[1] = {"ini"};
+
+            char* outPath = tinyfd_openFileDialog(
+                    "Load Config",
+                    NULL,
+                    1,
+                    filterPatterns,
+                    "Chat configs",
+                    0);
+
+            if (outPath != NULL) {
                 p.loadFromFile(outPath);
                 text_overlay.revalidatePreview = true;
-                NFD_FreePathU8(outPath);
-            } else if (result == NFD_CANCEL) {
-                printf("User pressed cancel on load config.\n");
-            } else {
-                printf("Error (load config): %s\n", NFD_GetError());
             }
         }
         ImGui::SameLine();
         if (!text_overlay.isInsidePicture)
             ImGui::BeginDisabled();
         if (ImGui::Button("Save Config")) {
-            nfdu8char_t *outPath = nullptr;
-            nfdu8filteritem_t filters[1] = {{"Chat configs", "ini"}};
-            nfdsavedialogu8args_t args = {0};
-            args.filterList = filters;
-            args.filterCount = 1;
-            args.defaultName = "config.ini";
-            // TODO NFD_GetNativeWindowFromGLFWWindow(window, &args.parentWindow);
-            nfdresult_t result = NFD_SaveDialogU8_With(&outPath, &args);
-            if (result == NFD_OKAY) {
-                p.saveToFile(outPath);
-                NFD_FreePathU8(outPath);
-            } else if (result == NFD_CANCEL) {
-                printf("User pressed cancel on save configs.\n");
-            } else {
-                printf("Error (save configs): %s\n", NFD_GetError());
-            }
+            char const * filterPatterns[1] = {"ini"};
+
+            char* outPath = tinyfd_saveFileDialog(
+                    "Save Config",
+                    "config.ini",
+                    1,
+                    filterPatterns,
+                    "Chat configs");
+            if (outPath != NULL) p.saveToFile(outPath);
         }
         if (!text_overlay.isInsidePicture) ImGui::EndDisabled();
         if (preview_texture == 0) ImGui::EndDisabled();
@@ -339,7 +318,6 @@ int main(int, char **) {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-    NFD_Quit();
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;

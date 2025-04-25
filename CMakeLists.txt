@@ -12,11 +12,13 @@ endif ()
 option(BUILD_GUI "Build the GUI config generator" ON)
 
 # External headers common to both targets
+set(TINYFD_DIR "${CMAKE_SOURCE_DIR}/submodules/tfd")
 set(TINYXML_DIR "${CMAKE_SOURCE_DIR}/submodules/tinyxml2")
 set(SIMPLEINI_DIR "${CMAKE_SOURCE_DIR}/submodules/simpleini")
 set(MAGICENUM_DIR "${CMAKE_SOURCE_DIR}/submodules/magic_enum")
 set(UTFCPP_DIR "${CMAKE_SOURCE_DIR}/submodules/utfcpp/")
 include_directories(
+        ${TINYFD_DIR}
         ${TINYXML_DIR}
         ${SIMPLEINI_DIR}
         ${MAGICENUM_DIR}/include/magic_enum
@@ -68,9 +70,6 @@ if (BUILD_GUI)
     set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/submodules/imgui")
     include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
-    # Add Native File Dialog
-    add_subdirectory("${CMAKE_SOURCE_DIR}/submodules/nativefiledialog-extended")
-
     # Add GUI executable
     add_executable(config_generator_gui
             ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
@@ -82,6 +81,7 @@ if (BUILD_GUI)
             ${IMGUI_DIR}/imgui_widgets.cpp
             ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
             ${TINYXML_DIR}/tinyxml2.cpp
+            ${TINYFD_DIR}/tinyfiledialogs.c
             gui_main.cpp
             fonts/lucon.hpp
     )
@@ -91,6 +91,5 @@ if (BUILD_GUI)
             glfw
             OpenGL::GL
             GLEW::GLEW
-            nfd
     )
 endif ()

@@ -14,12 +14,12 @@
 [submodule "submodules/CLI11"]
 	path = submodules/CLI11
 	url = https://github.com/CLIUtils/CLI11
-[submodule "submodules/nativefiledialog-extended"]
-	path = submodules/nativefiledialog-extended
-	url = https://github.com/btzy/nativefiledialog-extended
 [submodule "submodules/magic_enum"]
 	path = submodules/magic_enum
 	url = https://github.com/Neargye/magic_enum/
 [submodule "submodules/simpleini"]
 	path = submodules/simpleini
 	url = https://github.com/brofield/simpleini
+[submodule "submodules/tfd"]
+	path = submodules/tfd
+	url = https://github.com/LazyJazz/tinyfiledialogs
