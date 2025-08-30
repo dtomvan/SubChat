@@ -22,4 +22,4 @@
 	url = https://github.com/brofield/simpleini
 [submodule "submodules/tfd"]
 	path = submodules/tfd
-	url = http://git.code.sf.net/p/tinyfiledialogs/code
+	url = https://git.code.sf.net/p/tinyfiledialogs/code
